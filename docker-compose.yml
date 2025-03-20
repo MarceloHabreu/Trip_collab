@@ -1,6 +1,5 @@
 services:
   postgres:
-    container_name: container_tripCollab
     image: postgres:latest
     ports:
       - '5433:5432'
