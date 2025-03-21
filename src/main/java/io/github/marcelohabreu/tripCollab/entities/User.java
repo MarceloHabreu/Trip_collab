@@ -1,10 +1,13 @@
 package io.github.marcelohabreu.tripCollab.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.github.marcelohabreu.tripCollab.dtos.auth.LoginRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -40,5 +43,11 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    private LocalDateTime created_at;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "created_at", updatable = false, nullable = false, insertable = false)
+    private LocalDateTime createdAt;
+
+    public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(loginRequest.password(), this.password);
+    }
 }

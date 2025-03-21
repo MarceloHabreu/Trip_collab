@@ -1,5 +1,6 @@
 package io.github.marcelohabreu.tripCollab.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,6 +31,11 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "created_at", updatable = false, nullable = false, insertable = false)
+    private LocalDateTime createdAt;
+
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "updated_at", updatable = false, nullable = false, insertable = false)
+    private LocalDateTime updatedAt;
 }

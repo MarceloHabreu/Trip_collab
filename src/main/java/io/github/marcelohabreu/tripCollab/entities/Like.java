@@ -1,5 +1,6 @@
 package io.github.marcelohabreu.tripCollab.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,5 +29,7 @@ public class Like {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    private LocalDateTime liked_at;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "liked_at", updatable = false, nullable = false, insertable = false)
+    private LocalDateTime likedAt;
 }

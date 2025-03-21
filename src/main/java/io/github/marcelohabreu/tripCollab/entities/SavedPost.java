@@ -1,5 +1,6 @@
 package io.github.marcelohabreu.tripCollab.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,5 +29,7 @@ public class SavedPost {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    private LocalDateTime saved_at;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "saved_at", updatable = false, nullable = false, insertable = false)
+    private LocalDateTime savedAt;
 }

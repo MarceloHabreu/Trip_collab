@@ -1,5 +1,6 @@
 package io.github.marcelohabreu.tripCollab.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.github.marcelohabreu.tripCollab.entities.compostiteKey.FollowerId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -29,5 +30,7 @@ public class Follower {
     @JoinColumn(name = "followed_id")
     private User followed;
 
-    private LocalDateTime created_at;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "created_at", updatable = false, nullable = false, insertable = false)
+    private LocalDateTime createdAt;
 }
