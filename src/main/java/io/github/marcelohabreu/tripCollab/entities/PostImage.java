@@ -18,12 +18,16 @@ import java.util.UUID;
 public class PostImage {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID image_id;
+    @Column(name = "image_id")
+    private UUID imageId;
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    private String image_url;
-    private LocalDateTime uploaded_at;
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "uploaded_at")
+    private LocalDateTime uploadedAt;
 }

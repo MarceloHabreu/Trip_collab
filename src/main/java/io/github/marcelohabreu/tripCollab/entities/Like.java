@@ -19,7 +19,8 @@ import java.util.UUID;
 public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID like_id;
+    @Column(name = "like_id")
+    private UUID likeId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

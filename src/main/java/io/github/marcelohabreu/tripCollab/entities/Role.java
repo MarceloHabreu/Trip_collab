@@ -18,19 +18,26 @@ import java.util.Set;
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long role_id;
+    @Column(name = "role_id")
+    private Long roleId;
 
     private String name;
 
     @ManyToMany(mappedBy = "roles")
     private Set<User> users = new HashSet<>();
 
-    @Getter
     public enum Values {
         ADMIN(1L),
         USER(2L);
 
+        public long getRoleId() {
+            return roleId;
+        }
+
         long roleId;
-        Values(long roleId) {this.roleId = roleId;}
+
+        Values(long roleId) {
+            this.roleId = roleId;
+        }
     }
 }

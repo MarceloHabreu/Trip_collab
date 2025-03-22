@@ -19,7 +19,8 @@ import java.util.UUID;
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID comment_id;
+    @Column(name = "comment_id")
+    private UUID commentId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

@@ -19,7 +19,8 @@ import java.util.UUID;
 public class SavedPost {
     @Id
     @GeneratedValue (strategy = GenerationType .UUID)
-    private UUID  savedpost_id;
+    @Column(name = "savedpost_id")
+    private UUID  savedPostId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
