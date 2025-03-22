@@ -11,4 +11,4 @@ services:
       - tripcollab_pg_data:/var/lib/postgresql/data
 
 volumes:
-    tripcollab_pg_data:
+  tripcollab_pg_data:

@@ -18,6 +18,8 @@ target/
 *.iws
 *.iml
 *.ipr
+src/main/resources/app.key
+src/main/resources/app.pub
 
 ### NetBeans ###
 /nbproject/private/
@@ -28,6 +30,7 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
 
 ### VS Code ###
 .vscode/
