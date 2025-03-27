@@ -83,8 +83,13 @@ public class TokenController {
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         var userRole = roleRepository.findByName(Role.Values.USER.name()).orElseThrow(() -> new RuntimeException("Role USER not found"));
 
-        var userFromDb = userRepository.findByEmail(registerRequest.email());
-        if (userFromDb.isPresent()) {
+        var usernameFromDb = userRepository.findByUsername(registerRequest.username());
+        if (usernameFromDb.isPresent()) {
+            throw new EmailAlreadyExistsException();
+        }
+
+        var emailFromDb = userRepository.findByEmail(registerRequest.email());
+        if (emailFromDb.isPresent()) {
             throw new EmailAlreadyExistsException();
         }
 
