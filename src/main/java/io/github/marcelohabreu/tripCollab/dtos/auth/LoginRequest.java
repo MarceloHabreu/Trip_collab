@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Size;
 public record LoginRequest(
         @NotBlank(message = "The e-mail field is required")
         @Email(message = "Invalid e-mail format")
-        @Size(max = 100, message = "Email must not exceed 100 characters")
         String email,
 
         @NotBlank(message = "The password field is required")

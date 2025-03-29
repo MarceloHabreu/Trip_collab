@@ -4,9 +4,7 @@ import io.github.marcelohabreu.tripCollab.dtos.UserDetailsResponse;
 import io.github.marcelohabreu.tripCollab.dtos.UpdateUserDto;
 import io.github.marcelohabreu.tripCollab.entities.User;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
-import io.github.marcelohabreu.tripCollab.exceptions.user.EmailAlreadyExistsException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.UserNotFoundException;
-import io.github.marcelohabreu.tripCollab.exceptions.user.UsernameAlreadyExistsException;
 import io.github.marcelohabreu.tripCollab.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,16 +15,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-import static io.github.marcelohabreu.tripCollab.utils.AuthUtil.checkOwnership;
-
 @Service
 public class UserService {
     private final UserRepository repository;
     private final BCryptPasswordEncoder encoder;
 
+
     public UserService(UserRepository repository, BCryptPasswordEncoder encoder) {
         this.repository = repository;
         this.encoder = encoder;
+    }
+
+    public void checkOwnership(JwtAuthenticationToken token, UUID id) throws CustomAccessDeniedException {
+        if (token == null) {
+            throw new CustomAccessDeniedException("Authentication required!");
+        }
+        UUID authenticatedUserId = UUID.fromString(token.getName());
+        if (!authenticatedUserId.equals(id)) {
+            throw new CustomAccessDeniedException("You can only make changes on your own account! Please try again");
+        }
     }
 
     public ResponseEntity<List<UserDetailsResponse>> listAllUsers() {
@@ -40,40 +47,31 @@ public class UserService {
         checkOwnership(token, id);
 
         if (dto.username() != null && !dto.username().isBlank()) {
-            var existingUser = repository.findByUsername(dto.username());
-            if (existingUser.isPresent() && !existingUser.get().getUserId().equals(id)) {
-                throw new UsernameAlreadyExistsException();
-            }
             user.setUsername(dto.username());
         }
 
-        if (dto.email() != null && !dto.email().isBlank()) {
-            var existingEmail = repository.findByEmail(dto.email());
-            if (existingEmail.isPresent() && !existingEmail.get().getUserId().equals(id)){
-                throw new EmailAlreadyExistsException();
-            }
+        if (dto.email() != null && !dto.email().isBlank()){
             user.setEmail(dto.email());
         }
 
-        if (dto.password() != null && !dto.password().isBlank()) {
+        if (dto.password() != null && !dto.password().isBlank()){
             user.setPassword(encoder.encode(dto.password()));
         }
 
         repository.save(user);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Profile updated successfully");
+        response.put("message", "Profile successfully updated");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Transactional
     public ResponseEntity<Map<String, String>> deleteUser(UUID id, JwtAuthenticationToken token) throws CustomAccessDeniedException {
         var user = repository.findById(id).orElseThrow(UserNotFoundException::new);
         checkOwnership(token, id);
 
         repository.delete(user);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Profile deleted successfully");
+        response.put("message", "Profile successfully deleted");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
