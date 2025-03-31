@@ -1,8 +1,6 @@
 package io.github.marcelohabreu.tripCollab.services;
 
-import io.github.marcelohabreu.tripCollab.dtos.CreatePostDto;
-import io.github.marcelohabreu.tripCollab.dtos.PostResponse;
-import io.github.marcelohabreu.tripCollab.dtos.UpdatePostDto;
+import io.github.marcelohabreu.tripCollab.dtos.post.*;
 import io.github.marcelohabreu.tripCollab.entities.Post;
 import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
@@ -14,15 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static io.github.marcelohabreu.tripCollab.utils.AuthUtil.checkOwnership;
 
 @Service
+@Validated
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
@@ -32,25 +30,32 @@ public class PostService {
         this.userRepository = userRepository;
     }
 
+    private Post checkPostExists(UUID id) {
+        return postRepository.findById(id).orElseThrow(PostNotFoundException::new);
+    }
+
     @Transactional
-    public ResponseEntity<Map<String, String>> createPost(CreatePostDto p, JwtAuthenticationToken token) {
+    public ResponseEntity<Map<String, Object>> createPost(PostCreateRequest p, JwtAuthenticationToken token) {
         var user = userRepository.findById(UUID.fromString(token.getName())).orElseThrow(UserNotFoundException::new);
         Post newPost = new Post();
         newPost.setTitle(p.title());
         newPost.setBody(p.body());
         newPost.setLocation(p.location());
         newPost.setUser(user);
+        newPost.setCreatedAt(LocalDateTime.now());
+        newPost.setUpdatedAt(LocalDateTime.now());
 
         postRepository.save(newPost);
 
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("message", "Post created successfully");
+        response.put("post", PostResponse.fromModel(newPost));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Transactional
-    public ResponseEntity<Map<String, String>> updatePost(UUID id, UpdatePostDto dto, JwtAuthenticationToken token) throws CustomAccessDeniedException {
+    public ResponseEntity<Map<String, Object>> updateMyPost(UUID id, PostUpdateRequest dto, JwtAuthenticationToken token) throws CustomAccessDeniedException {
         var post = checkPostExists(id);
         checkOwnership(token, post.getUser().getUserId());
 
@@ -64,31 +69,42 @@ public class PostService {
             post.setLocation(dto.location());
         }
 
+        post.setUpdatedAt(LocalDateTime.now());
         postRepository.save(post);
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("message", "Post updated successfully");
+        response.put("post", PostResponse.fromModel(post));
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    private Post checkPostExists(UUID id) {
-        return postRepository.findById(id).orElseThrow(PostNotFoundException::new);
-    }
-
     @Transactional
-    public ResponseEntity<Map<String, String>> deletePost(UUID id, JwtAuthenticationToken token) throws CustomAccessDeniedException {
+    public ResponseEntity<Void> deleteMyPost(UUID id, JwtAuthenticationToken token) throws CustomAccessDeniedException {
         var post = checkPostExists(id);
         checkOwnership(token, post.getUser().getUserId());
 
         postRepository.delete(post);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Post deleted successfully");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    public ResponseEntity<PostResponse> getMyPost(UUID id, JwtAuthenticationToken token){
+        var post = checkPostExists(id);
+        checkOwnership(token, post.getUser().getUserId());
+
+        return ResponseEntity.ok(PostResponse.fromModel(post));
+    }
+
+    public ResponseEntity<PublicPostResponse> getPublicPost(UUID id){
+        var post = checkPostExists(id);
+        return ResponseEntity.ok(PublicPostResponse.fromModel(post));
     }
 
 
-    public ResponseEntity<List<PostResponse>> listPosts() {
-        List<PostResponse> posts = postRepository.findAll().stream().map(PostResponse::fromModel).toList();
-        return ResponseEntity.status(HttpStatus.OK).body(posts);
+    public ResponseEntity<List<PostAdminResponse>> listAdminPosts() {
+        return ResponseEntity.ok(postRepository.findAll().stream().sorted(Comparator.comparing(Post::getTitle)).map(PostAdminResponse::fromModel).toList());
+    }
+    public ResponseEntity<List<PublicPostResponse>> listPublicPosts() {
+        return ResponseEntity.ok(postRepository.findAll().stream().sorted(Comparator.comparing(Post::getTitle)).map(PublicPostResponse::fromModel).toList());
     }
 }

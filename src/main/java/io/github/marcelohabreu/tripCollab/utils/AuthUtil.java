@@ -24,7 +24,7 @@ public class AuthUtil{
         try{
             UUID authenticatedUserId = UUID.fromString(token.getName());
             if (!authenticatedUserId.equals(id)) {
-                throw new CustomAccessDeniedException("You can only make changes on your own account! Please try again");
+                throw new CustomAccessDeniedException("You can only view or make changes on your own account! Please try again");
             }
         } catch (IllegalArgumentException e){
             throw new CustomAccessDeniedException("Invalid token format: user ID must be a valid UUID");
