@@ -5,6 +5,7 @@ import io.github.marcelohabreu.tripCollab.entities.Role;
 import io.github.marcelohabreu.tripCollab.entities.User;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomBadCredentialsException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.EmailAlreadyExistsException;
+import io.github.marcelohabreu.tripCollab.exceptions.user.UsernameAlreadyExistsException;
 import io.github.marcelohabreu.tripCollab.repositories.RoleRepository;
 import io.github.marcelohabreu.tripCollab.repositories.UserRepository;
 import jakarta.validation.Valid;
@@ -83,8 +84,12 @@ public class TokenController {
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         var userRole = roleRepository.findByName(Role.Values.USER.name()).orElseThrow(() -> new RuntimeException("Role USER not found"));
 
-        var userFromDb = userRepository.findByEmail(registerRequest.email());
-        if (userFromDb.isPresent()) {
+        var userEmailFromDb = userRepository.findByEmail(registerRequest.email());
+        var usernameFromDb = userRepository.findByUsername(registerRequest.username());
+        if (usernameFromDb.isPresent()) {
+            throw new UsernameAlreadyExistsException();
+
+        } else if (userEmailFromDb.isPresent()) {
             throw new EmailAlreadyExistsException();
         }
 

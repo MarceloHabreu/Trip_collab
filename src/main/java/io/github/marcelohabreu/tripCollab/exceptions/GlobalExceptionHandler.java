@@ -1,7 +1,7 @@
 package io.github.marcelohabreu.tripCollab.exceptions;
 
-import io.github.marcelohabreu.tripCollab.exceptions.user.CustomBadCredentialsException;
-import io.github.marcelohabreu.tripCollab.exceptions.user.EmailAlreadyExistsException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
+import io.github.marcelohabreu.tripCollab.exceptions.user.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -53,12 +53,45 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
+    @ExceptionHandler(CustomAccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleCustomAccessDeniedException(CustomAccessDeniedException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleUsernameExists(UsernameAlreadyExistsException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleEmailAlreadyExistyException(EmailAlreadyExistsException ex, WebRequest request) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // Post
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handlePostNotFoundException(PostNotFoundException ex, WebRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     // Generics
