@@ -1,6 +1,8 @@
 package io.github.marcelohabreu.tripCollab.exceptions;
 
 import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.like.AlertAddLikePostException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.like.AlertRemoveLikePostException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -92,6 +94,23 @@ public class GlobalExceptionHandler {
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // Like
+    @ExceptionHandler(AlertAddLikePostException.class)
+    public ResponseEntity<Map<String, Object>> handleAlertAddLikePostException(AlertAddLikePostException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(AlertRemoveLikePostException.class)
+    public ResponseEntity<Map<String, Object>> handleAlertRemoveLikePostException(AlertRemoveLikePostException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     // Generics
