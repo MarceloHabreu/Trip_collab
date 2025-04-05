@@ -10,6 +10,7 @@ import io.github.marcelohabreu.tripCollab.exceptions.user.EmailAlreadyExistsExce
 import io.github.marcelohabreu.tripCollab.exceptions.user.UserNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.UsernameAlreadyExistsException;
 import io.github.marcelohabreu.tripCollab.repositories.UserRepository;
+import io.github.marcelohabreu.tripCollab.utils.AuthUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,18 +21,18 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
 
-import static io.github.marcelohabreu.tripCollab.utils.AuthUtil.checkOwnership;
 
 @Service
 @Validated
 public class UserService {
     private final UserRepository repository;
     private final BCryptPasswordEncoder encoder;
+    private final AuthUtil authUtil;
 
-
-    public UserService(UserRepository repository, BCryptPasswordEncoder encoder) {
+    public UserService(UserRepository repository, BCryptPasswordEncoder encoder, AuthUtil authUtil) {
         this.repository = repository;
         this.encoder = encoder;
+        this.authUtil = authUtil;
     }
 
     public ResponseEntity<List<AdminUserResponse>> listAdminUsers() {
@@ -44,7 +45,7 @@ public class UserService {
     @Transactional
     public ResponseEntity<Map<String, Object>> updateMyProfile(UUID id, JwtAuthenticationToken token, UserUpdateRequest dto) throws CustomAccessDeniedException {
         var user = repository.findById(id).orElseThrow(UserNotFoundException::new);
-        checkOwnership(token, id);
+        authUtil.checkOwnership(token, id);
 
         if (dto.username() != null && !dto.username().isBlank()) {
             var existingUser = repository.findByUsername(dto.username());
@@ -76,7 +77,7 @@ public class UserService {
 
     public ResponseEntity<UserResponse> getMyProfile(UUID id, JwtAuthenticationToken token){
         var user = repository.findById(id).map(UserResponse::fromModel).orElseThrow(UserNotFoundException::new);
-        checkOwnership(token, id);
+        authUtil.checkOwnership(token, id);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
@@ -88,7 +89,7 @@ public class UserService {
     @Transactional
     public ResponseEntity<Void> deleteMyProfile(UUID id, JwtAuthenticationToken token) throws CustomAccessDeniedException {
         var user = repository.findById(id).orElseThrow(UserNotFoundException::new);
-        checkOwnership(token, id);
+        authUtil.checkOwnership(token, id);
         repository.delete(user);
         return ResponseEntity.noContent().build();
     }

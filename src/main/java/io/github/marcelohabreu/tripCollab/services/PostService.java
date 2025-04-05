@@ -2,11 +2,11 @@ package io.github.marcelohabreu.tripCollab.services;
 
 import io.github.marcelohabreu.tripCollab.dtos.post.*;
 import io.github.marcelohabreu.tripCollab.entities.Post;
-import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.UserNotFoundException;
 import io.github.marcelohabreu.tripCollab.repositories.PostRepository;
 import io.github.marcelohabreu.tripCollab.repositories.UserRepository;
+import io.github.marcelohabreu.tripCollab.utils.AuthUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -17,22 +17,19 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static io.github.marcelohabreu.tripCollab.utils.AuthUtil.checkOwnership;
-
 @Service
 @Validated
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final AuthUtil authUtil;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, AuthUtil authUtil) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.authUtil = authUtil;
     }
 
-    private Post checkPostExists(UUID id) {
-        return postRepository.findById(id).orElseThrow(PostNotFoundException::new);
-    }
 
     @Transactional
     public ResponseEntity<Map<String, Object>> createPost(PostCreateRequest p, JwtAuthenticationToken token) {
@@ -56,8 +53,8 @@ public class PostService {
 
     @Transactional
     public ResponseEntity<Map<String, Object>> updateMyPost(UUID id, PostUpdateRequest dto, JwtAuthenticationToken token) throws CustomAccessDeniedException {
-        var post = checkPostExists(id);
-        checkOwnership(token, post.getUser().getUserId());
+        var post = authUtil.checkPostExists(id);
+        authUtil.checkOwnership(token, post.getUser().getUserId());
 
         if (dto.title() != null && !dto.title().isBlank()) {
             post.setTitle(dto.title());
@@ -80,8 +77,8 @@ public class PostService {
 
     @Transactional
     public ResponseEntity<Void> deleteMyPost(UUID id, JwtAuthenticationToken token) throws CustomAccessDeniedException {
-        var post = checkPostExists(id);
-        checkOwnership(token, post.getUser().getUserId());
+        var post = authUtil.checkPostExists(id);
+        authUtil.checkOwnership(token, post.getUser().getUserId());
 
         postRepository.delete(post);
 
@@ -89,17 +86,16 @@ public class PostService {
     }
 
     public ResponseEntity<PostResponse> getMyPost(UUID id, JwtAuthenticationToken token){
-        var post = checkPostExists(id);
-        checkOwnership(token, post.getUser().getUserId());
+        var post = authUtil.checkPostExists(id);
+        authUtil.checkOwnership(token, post.getUser().getUserId());
 
         return ResponseEntity.ok(PostResponse.fromModel(post));
     }
 
     public ResponseEntity<PublicPostResponse> getPublicPost(UUID id){
-        var post = checkPostExists(id);
+        var post = authUtil.checkPostExists(id);
         return ResponseEntity.ok(PublicPostResponse.fromModel(post));
     }
-
 
     public ResponseEntity<List<PostAdminResponse>> listAdminPosts() {
         return ResponseEntity.ok(postRepository.findAll().stream().sorted(Comparator.comparing(Post::getTitle)).map(PostAdminResponse::fromModel).toList());
