@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/tripcollab/likes")
+@RequestMapping("api/tripcollab/posts")
 public class LikeController {
     private final LikeService likeService;
 
@@ -16,13 +16,13 @@ public class LikeController {
         this.likeService = likeService;
     }
 
-    @PostMapping("/{postId}")
-    public ResponseEntity<Void> likePost(@PathVariable UUID postId, JwtAuthenticationToken token){
+    @PostMapping("/{postId}/likes")
+    public ResponseEntity<Void> addLike(@PathVariable UUID postId, JwtAuthenticationToken token){
         return likeService.likePost(postId, token);
     }
 
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> unlikePost(@PathVariable UUID postId, JwtAuthenticationToken token){
+    @DeleteMapping("/{postId}/likes")
+    public ResponseEntity<Void> removeLike(@PathVariable UUID postId, JwtAuthenticationToken token){
         return likeService.unlikePost(postId, token);
     }
 }
