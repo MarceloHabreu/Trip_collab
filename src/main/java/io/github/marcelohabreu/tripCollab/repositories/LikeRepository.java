@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,4 +24,7 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
     boolean existsByPostPostIdAndUserUserId(UUID postId, UUID userId);
 
     Optional<Like> findByPostPostIdAndUserUserId(UUID postId, UUID userId);
+
+    @Query("SELECT l.post FROM Like l WHERE l.user.userId = :userId")
+    List<Post> findPostsByUserId(@Param("userId") UUID userId);
 }

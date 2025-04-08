@@ -35,6 +35,11 @@ public class UserService {
         this.authUtil = authUtil;
     }
 
+    // Extract the id from token
+    private static UUID extractId(JwtAuthenticationToken token) {
+        return UUID.fromString(token.getName());
+    }
+
     public ResponseEntity<List<AdminUserResponse>> listAdminUsers() {
         return ResponseEntity.ok(repository.findAll().stream().sorted(Comparator.comparing(User::getUsername)).map(AdminUserResponse::fromModel).toList());
     }
@@ -43,13 +48,13 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseEntity<Map<String, Object>> updateMyProfile(UUID id, JwtAuthenticationToken token, UserUpdateRequest dto) throws CustomAccessDeniedException {
-        var user = repository.findById(id).orElseThrow(UserNotFoundException::new);
-        authUtil.checkOwnership(token, id);
+    public ResponseEntity<Map<String, Object>> updateMyProfile(JwtAuthenticationToken token, UserUpdateRequest dto) throws CustomAccessDeniedException {
+        var userId = extractId(token);
+        var user = repository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         if (dto.username() != null && !dto.username().isBlank()) {
             var existingUser = repository.findByUsername(dto.username());
-            if (existingUser.isPresent() && !existingUser.get().getUserId().equals(id)) {
+            if (existingUser.isPresent() && !existingUser.get().getUserId().equals(userId)) {
                 throw new UsernameAlreadyExistsException();
             }
             user.setUsername(dto.username());
@@ -57,7 +62,7 @@ public class UserService {
 
         if (dto.email() != null && !dto.email().isBlank()) {
             var existingEmail = repository.findByEmail(dto.email());
-            if (existingEmail.isPresent() && !existingEmail.get().getUserId().equals(id)) {
+            if (existingEmail.isPresent() && !existingEmail.get().getUserId().equals(userId)) {
                 throw new EmailAlreadyExistsException();
             }
             user.setEmail(dto.email());
@@ -75,9 +80,9 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    public ResponseEntity<UserResponse> getMyProfile(UUID id, JwtAuthenticationToken token){
-        var user = repository.findById(id).map(UserResponse::fromModel).orElseThrow(UserNotFoundException::new);
-        authUtil.checkOwnership(token, id);
+    public ResponseEntity<UserResponse> getMyProfile(JwtAuthenticationToken token){
+        UUID userId = extractId(token);
+        var user = repository.findById(userId).map(UserResponse::fromModel).orElseThrow(UserNotFoundException::new);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
@@ -87,9 +92,9 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseEntity<Void> deleteMyProfile(UUID id, JwtAuthenticationToken token) throws CustomAccessDeniedException {
-        var user = repository.findById(id).orElseThrow(UserNotFoundException::new);
-        authUtil.checkOwnership(token, id);
+    public ResponseEntity<Void> deleteMyProfile(JwtAuthenticationToken token) throws CustomAccessDeniedException {
+        var userId = extractId(token);
+        var user = repository.findById(userId).orElseThrow(UserNotFoundException::new);
         repository.delete(user);
         return ResponseEntity.noContent().build();
     }

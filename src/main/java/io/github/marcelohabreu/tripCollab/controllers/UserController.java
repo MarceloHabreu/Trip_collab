@@ -1,10 +1,14 @@
 package io.github.marcelohabreu.tripCollab.controllers;
 
+import io.github.marcelohabreu.tripCollab.dtos.post.like.UserLikedPostsResponse;
+import io.github.marcelohabreu.tripCollab.dtos.post.save.UserSavedPostsResponse;
 import io.github.marcelohabreu.tripCollab.dtos.user.PublicUserResponse;
 import io.github.marcelohabreu.tripCollab.dtos.user.UserUpdateRequest;
 import io.github.marcelohabreu.tripCollab.dtos.user.AdminUserResponse;
 import io.github.marcelohabreu.tripCollab.dtos.user.UserResponse;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
+import io.github.marcelohabreu.tripCollab.services.LikeService;
+import io.github.marcelohabreu.tripCollab.services.SaveService;
 import io.github.marcelohabreu.tripCollab.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +25,13 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService service;
+    private final LikeService likeService;
+    private final SaveService saveService;
 
-    public UserController(UserService service) {
+    public UserController(UserService service, LikeService likeService, SaveService saveService) {
         this.service = service;
+        this.likeService = likeService;
+        this.saveService = saveService;
     }
 
     @GetMapping
@@ -37,9 +45,9 @@ public class UserController {
         return service.listPublicUsers();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getMyProfile(@PathVariable UUID id, JwtAuthenticationToken token){
-        return service.getMyProfile(id, token);
+    @GetMapping("/me/profile")
+    public ResponseEntity<UserResponse> getMyProfile( JwtAuthenticationToken token){
+        return service.getMyProfile( token);
     }
 
     @GetMapping("/public/{id}")
@@ -47,13 +55,25 @@ public class UserController {
         return service.getPublicUser(id);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updateMyProfile(@PathVariable UUID id, @Valid @RequestBody UserUpdateRequest dto, JwtAuthenticationToken token) throws CustomAccessDeniedException {
-        return service.updateMyProfile(id, token, dto);
+    @PutMapping("/me/profile")
+    public ResponseEntity<Map<String, Object>> updateMyProfile(@Valid @RequestBody UserUpdateRequest dto, JwtAuthenticationToken token) throws CustomAccessDeniedException {
+        return service.updateMyProfile(token, dto);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMyProfile(@PathVariable UUID id, JwtAuthenticationToken token) throws CustomAccessDeniedException {
-        return service.deleteMyProfile(id, token);
+    @DeleteMapping("/me/profile")
+    public ResponseEntity<Void> deleteMyProfile(JwtAuthenticationToken token) throws CustomAccessDeniedException {
+        return service.deleteMyProfile(token);
+    }
+
+    // Likes
+    @GetMapping("/me/liked-posts")
+    public ResponseEntity<UserLikedPostsResponse> listLikedPosts(JwtAuthenticationToken token) {
+        return likeService.getLikedPosts(token);
+    }
+
+    // Saves
+    @GetMapping("/me/saved-posts")
+    public ResponseEntity<UserSavedPostsResponse> listSavedPosts(JwtAuthenticationToken token) {
+        return saveService.getSavedPosts(token);
     }
 }

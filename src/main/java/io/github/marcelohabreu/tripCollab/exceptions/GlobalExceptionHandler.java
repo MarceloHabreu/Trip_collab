@@ -3,6 +3,8 @@ package io.github.marcelohabreu.tripCollab.exceptions;
 import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.like.PostAlreadyLikedException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.like.PostNotLikedException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.save.PostAlreadySavedException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.save.PostNotSavedException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
+import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -113,6 +116,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    // Save
+    @ExceptionHandler(PostAlreadySavedException.class)
+    public ResponseEntity<Map<String, Object>> handlePostAlreadySavedExceptionn(PostAlreadySavedException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(PostNotSavedException.class)
+    public ResponseEntity<Map<String, Object>> handlePostNotSavedException(PostNotSavedException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     // Generics
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
@@ -122,5 +142,6 @@ public class GlobalExceptionHandler {
         response.put("timestamp", getCurrentTimestamp());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
 
 }
