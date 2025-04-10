@@ -1,6 +1,5 @@
 package io.github.marcelohabreu.tripCollab.repositories;
 
-import io.github.marcelohabreu.tripCollab.entities.Like;
 import io.github.marcelohabreu.tripCollab.entities.Post;
 import io.github.marcelohabreu.tripCollab.entities.SavedPost;
 import org.springframework.data.jpa.repository.JpaRepository;

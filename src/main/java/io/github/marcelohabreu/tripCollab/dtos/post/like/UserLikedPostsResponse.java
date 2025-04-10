@@ -1,5 +1,6 @@
 package io.github.marcelohabreu.tripCollab.dtos.post.like;
 
+
 import io.github.marcelohabreu.tripCollab.dtos.post.PublicPostResponse;
 import io.github.marcelohabreu.tripCollab.entities.Post;
 

@@ -1,7 +1,10 @@
 package io.github.marcelohabreu.tripCollab.controllers;
 
 import io.github.marcelohabreu.tripCollab.dtos.post.*;
+import io.github.marcelohabreu.tripCollab.dtos.post.comment.CommentCreateRequest;
+import io.github.marcelohabreu.tripCollab.dtos.post.comment.PublicCommentsResponse;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
+import io.github.marcelohabreu.tripCollab.services.CommentService;
 import io.github.marcelohabreu.tripCollab.services.LikeService;
 import io.github.marcelohabreu.tripCollab.services.PostService;
 import io.github.marcelohabreu.tripCollab.services.SaveService;
@@ -22,11 +25,13 @@ public class PostController {
     private final PostService service;
     private final LikeService likeService;
     private final SaveService saveService;
+    private final CommentService commentService;
 
-    public PostController(PostService service, LikeService likeService, SaveService saveService) {
+    public PostController(PostService service, LikeService likeService, SaveService saveService, CommentService commentService) {
         this.service = service;
         this.likeService = likeService;
         this.saveService = saveService;
+        this.commentService = commentService;
     }
 
     @PostMapping
@@ -85,6 +90,22 @@ public class PostController {
     @DeleteMapping("/{postId}/saves")
     public ResponseEntity<Void> unsavePost(@PathVariable UUID postId, JwtAuthenticationToken token) {
         return saveService.unsavePost(postId, token);
+    }
+
+    // Comments
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<Void> createComment(@PathVariable UUID postId, @Valid @RequestBody CommentCreateRequest comment, JwtAuthenticationToken token){
+        return commentService.createComment(postId, comment, token);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId, JwtAuthenticationToken token){
+        return commentService.deleteComment(commentId, token);
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<PublicCommentsResponse> listCommentsByPost(@PathVariable UUID postId){
+        return commentService.getCommentsByPosts(postId);
     }
 
 

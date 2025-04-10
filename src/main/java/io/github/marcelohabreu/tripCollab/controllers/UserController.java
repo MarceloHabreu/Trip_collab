@@ -1,5 +1,6 @@
 package io.github.marcelohabreu.tripCollab.controllers;
 
+import io.github.marcelohabreu.tripCollab.dtos.post.comment.UserCommentsResponse;
 import io.github.marcelohabreu.tripCollab.dtos.post.like.UserLikedPostsResponse;
 import io.github.marcelohabreu.tripCollab.dtos.post.save.UserSavedPostsResponse;
 import io.github.marcelohabreu.tripCollab.dtos.user.PublicUserResponse;
@@ -7,6 +8,7 @@ import io.github.marcelohabreu.tripCollab.dtos.user.UserUpdateRequest;
 import io.github.marcelohabreu.tripCollab.dtos.user.AdminUserResponse;
 import io.github.marcelohabreu.tripCollab.dtos.user.UserResponse;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
+import io.github.marcelohabreu.tripCollab.services.CommentService;
 import io.github.marcelohabreu.tripCollab.services.LikeService;
 import io.github.marcelohabreu.tripCollab.services.SaveService;
 import io.github.marcelohabreu.tripCollab.services.UserService;
@@ -27,31 +29,33 @@ public class UserController {
     private final UserService service;
     private final LikeService likeService;
     private final SaveService saveService;
+    private final CommentService commentService;
 
-    public UserController(UserService service, LikeService likeService, SaveService saveService) {
+    public UserController(UserService service, LikeService likeService, SaveService saveService, CommentService commentService) {
         this.service = service;
         this.likeService = likeService;
         this.saveService = saveService;
+        this.commentService = commentService;
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public ResponseEntity<List<AdminUserResponse>> listAdminUsers(){
+    public ResponseEntity<List<AdminUserResponse>> listAdminUsers() {
         return service.listAdminUsers();
     }
 
     @GetMapping("/public")
-    public ResponseEntity<List<PublicUserResponse>> listPublicUsers(){
+    public ResponseEntity<List<PublicUserResponse>> listPublicUsers() {
         return service.listPublicUsers();
     }
 
     @GetMapping("/me/profile")
-    public ResponseEntity<UserResponse> getMyProfile( JwtAuthenticationToken token){
-        return service.getMyProfile( token);
+    public ResponseEntity<UserResponse> getMyProfile(JwtAuthenticationToken token) {
+        return service.getMyProfile(token);
     }
 
     @GetMapping("/public/{id}")
-    public ResponseEntity<PublicUserResponse> getUser(@PathVariable UUID id){
+    public ResponseEntity<PublicUserResponse> getUser(@PathVariable UUID id) {
         return service.getPublicUser(id);
     }
 
@@ -67,13 +71,20 @@ public class UserController {
 
     // Likes
     @GetMapping("/me/liked-posts")
-    public ResponseEntity<UserLikedPostsResponse> listLikedPosts(JwtAuthenticationToken token) {
+    public ResponseEntity<UserLikedPostsResponse> getMyLikedPosts(JwtAuthenticationToken token) {
         return likeService.getLikedPosts(token);
     }
 
     // Saves
     @GetMapping("/me/saved-posts")
-    public ResponseEntity<UserSavedPostsResponse> listSavedPosts(JwtAuthenticationToken token) {
+    public ResponseEntity<UserSavedPostsResponse> getMySavedPosts(JwtAuthenticationToken token) {
         return saveService.getSavedPosts(token);
     }
+
+    // Comments
+    @GetMapping("/me/comments")
+    public ResponseEntity<UserCommentsResponse> getMyComments(JwtAuthenticationToken token){
+        return commentService.getMyComments(token);
+    }
+
 }

@@ -1,6 +1,7 @@
 package io.github.marcelohabreu.tripCollab.exceptions;
 
 import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.comment.CommentNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.like.PostAlreadyLikedException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.like.PostNotLikedException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.save.PostAlreadySavedException;
@@ -75,7 +76,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleEmailAlreadyExistyException(EmailAlreadyExistsException ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handleEmailAlreadyExistyException(EmailAlreadyExistsException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
@@ -83,7 +84,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
@@ -92,7 +93,7 @@ public class GlobalExceptionHandler {
 
     // Post
     @ExceptionHandler(PostNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handlePostNotFoundException(PostNotFoundException ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handlePostNotFoundException(PostNotFoundException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
@@ -131,6 +132,15 @@ public class GlobalExceptionHandler {
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    // Comment
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleCommentNotFoundException(CommentNotFoundException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     // Generics

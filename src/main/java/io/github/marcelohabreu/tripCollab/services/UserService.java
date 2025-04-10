@@ -43,6 +43,7 @@ public class UserService {
     public ResponseEntity<List<AdminUserResponse>> listAdminUsers() {
         return ResponseEntity.ok(repository.findAll().stream().sorted(Comparator.comparing(User::getUsername)).map(AdminUserResponse::fromModel).toList());
     }
+
     public ResponseEntity<List<PublicUserResponse>> listPublicUsers() {
         return ResponseEntity.ok(repository.findAll().stream().sorted(Comparator.comparing(User::getUsername)).map(PublicUserResponse::fromModel).toList());
     }
@@ -80,13 +81,13 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    public ResponseEntity<UserResponse> getMyProfile(JwtAuthenticationToken token){
+    public ResponseEntity<UserResponse> getMyProfile(JwtAuthenticationToken token) {
         UUID userId = extractId(token);
         var user = repository.findById(userId).map(UserResponse::fromModel).orElseThrow(UserNotFoundException::new);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
-    public ResponseEntity<PublicUserResponse> getPublicUser(UUID id){
+    public ResponseEntity<PublicUserResponse> getPublicUser(UUID id) {
         var user = repository.findById(id).map(PublicUserResponse::fromModel).orElseThrow(UserNotFoundException::new);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
