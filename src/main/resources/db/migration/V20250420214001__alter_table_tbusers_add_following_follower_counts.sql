@@ -1,0 +1,3 @@
+ALTER TABLE tb_users
+ADD follower_count INTEGER NOT NULL DEFAULT 0,
+ADD following_count INTEGER NOT NULL DEFAULT 0;

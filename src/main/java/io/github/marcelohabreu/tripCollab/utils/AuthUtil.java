@@ -2,11 +2,14 @@ package io.github.marcelohabreu.tripCollab.utils;
 
 import io.github.marcelohabreu.tripCollab.entities.Comment;
 import io.github.marcelohabreu.tripCollab.entities.Post;
+import io.github.marcelohabreu.tripCollab.entities.User;
 import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.comment.CommentNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
+import io.github.marcelohabreu.tripCollab.exceptions.user.UserNotFoundException;
 import io.github.marcelohabreu.tripCollab.repositories.CommentRepository;
 import io.github.marcelohabreu.tripCollab.repositories.PostRepository;
+import io.github.marcelohabreu.tripCollab.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
@@ -19,11 +22,13 @@ import java.util.UUID;
 @Component
 public class AuthUtil{
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
     private final CommentRepository commentRepository;
 
     @Autowired
-    public AuthUtil(PostRepository postRepository, CommentRepository commentRepository) {
+    public AuthUtil(PostRepository postRepository, UserRepository userRepository, CommentRepository commentRepository) {
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
         this.commentRepository = commentRepository;
     }
 
@@ -80,6 +85,19 @@ public class AuthUtil{
             throw new IllegalArgumentException("The provided ID must not be null.");
         }
         return postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+    }
+
+    /**
+     * Check if the user exists and return it if it does
+     *
+     * @param userId The UUID of the resource to be verified.
+     * @throws UserNotFoundException If the user doesn't exist
+     */
+    public User checkUserExists(UUID userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("The provided ID must not be null.");
+        }
+        return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 
     /**

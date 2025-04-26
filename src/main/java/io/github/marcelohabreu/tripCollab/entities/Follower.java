@@ -22,12 +22,12 @@ public class Follower {
 
     @ManyToOne
     @MapsId("follower_id")
-    @JoinColumn(name = "follower_id")
+    @JoinColumn(name = "following_user_id")
     private User follower;
 
     @ManyToOne
     @MapsId("followed_id")
-    @JoinColumn(name = "followed_id")
+    @JoinColumn(name = "followed_user_id")
     private User followed;
 
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")

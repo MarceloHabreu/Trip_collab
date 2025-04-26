@@ -33,6 +33,12 @@ public class User {
 
     private String password;
 
+    @Column(name = "follower_count", nullable = false)
+    private int followerCount = 0;
+
+    @Column(name = "following_count", nullable = false)
+    private int followingCount = 0;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts;
 

@@ -33,4 +33,7 @@ public class SavedPost {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "saved_at", updatable = false, nullable = false, insertable = false)
     private LocalDateTime savedAt;
+
+    @Column(name = "save_count")
+    private int saveCount;
 }

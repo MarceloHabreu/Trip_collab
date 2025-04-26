@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "tb_posts")
@@ -32,6 +32,18 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "like_count")
+    private int likeCount;
+
+    @Column(name = "comment_count")
+    private int commentCount;
+
+    @Column(name = "save_count")
+    private int saveCount;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<Image> images = new ArrayList<>();
+
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "created_at", updatable = false, nullable = false, insertable = false)
     private LocalDateTime createdAt;
@@ -39,4 +51,5 @@ public class Post {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "updated_at", updatable = false, nullable = false, insertable = false)
     private LocalDateTime updatedAt;
+
 }

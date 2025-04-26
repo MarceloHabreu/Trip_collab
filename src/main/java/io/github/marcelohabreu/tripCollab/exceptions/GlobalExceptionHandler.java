@@ -2,20 +2,24 @@ package io.github.marcelohabreu.tripCollab.exceptions;
 
 import io.github.marcelohabreu.tripCollab.exceptions.post.PostNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.comment.CommentNotFoundException;
+import io.github.marcelohabreu.tripCollab.exceptions.user.follower.AlreadyFollowingException;
+import io.github.marcelohabreu.tripCollab.exceptions.user.follower.NotFollowingException;
+import io.github.marcelohabreu.tripCollab.exceptions.user.follower.SelfFollowException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.image.FileIsNotImageException;
+import io.github.marcelohabreu.tripCollab.exceptions.post.image.ImageSizeExceededException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.like.PostAlreadyLikedException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.like.PostNotLikedException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.save.PostAlreadySavedException;
 import io.github.marcelohabreu.tripCollab.exceptions.post.save.PostNotSavedException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.*;
+import io.github.marcelohabreu.tripCollab.exceptions.user.follower.SelfUnfollowException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 
-import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -47,7 +51,8 @@ public class GlobalExceptionHandler {
 
         response.put("errors", errors);
         response.put("timestamp", getCurrentTimestamp());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        // 422 -> HttpStatus request valid but data invalid
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
     }
 
     // User
@@ -80,7 +85,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -100,13 +105,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    // Image
+    @ExceptionHandler(FileIsNotImageException.class)
+    public ResponseEntity<Map<String, Object>> handleFileIsNotImageException(FileIsNotImageException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(response);
+    }
+
+    @ExceptionHandler(ImageSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleImageSizeExceededException(ImageSizeExceededException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
+    }
+
     // Like
     @ExceptionHandler(PostAlreadyLikedException.class)
     public ResponseEntity<Map<String, Object>> handlePostAlreadyLikedException(PostAlreadyLikedException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(PostNotLikedException.class)
@@ -114,7 +136,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     // Save
@@ -123,7 +145,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(PostNotSavedException.class)
@@ -131,7 +153,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     // Comment
@@ -141,6 +163,39 @@ public class GlobalExceptionHandler {
         response.put("error", ex.getMessage());
         response.put("timestamp", getCurrentTimestamp());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // Follower
+    @ExceptionHandler(SelfFollowException.class)
+    public ResponseEntity<Map<String, Object>> handleSelfFollowException(SelfFollowException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(SelfUnfollowException.class)
+    public ResponseEntity<Map<String, Object>> handleSelfUnfollowException(SelfUnfollowException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(AlreadyFollowingException.class)
+    public ResponseEntity<Map<String, Object>> handleAlreadyFollowingException(AlreadyFollowingException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(NotFollowingException.class)
+    public ResponseEntity<Map<String, Object>> handleNoExistingFollowException(NotFollowingException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        response.put("timestamp", getCurrentTimestamp());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     // Generics

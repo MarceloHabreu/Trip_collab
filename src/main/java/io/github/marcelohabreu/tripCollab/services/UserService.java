@@ -1,14 +1,12 @@
 package io.github.marcelohabreu.tripCollab.services;
 
-import io.github.marcelohabreu.tripCollab.dtos.user.AdminUserResponse;
-import io.github.marcelohabreu.tripCollab.dtos.user.PublicUserResponse;
-import io.github.marcelohabreu.tripCollab.dtos.user.UserUpdateRequest;
-import io.github.marcelohabreu.tripCollab.dtos.user.UserResponse;
+import io.github.marcelohabreu.tripCollab.dtos.user.*;
 import io.github.marcelohabreu.tripCollab.entities.User;
 import io.github.marcelohabreu.tripCollab.exceptions.user.CustomAccessDeniedException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.EmailAlreadyExistsException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.UserNotFoundException;
 import io.github.marcelohabreu.tripCollab.exceptions.user.UsernameAlreadyExistsException;
+import io.github.marcelohabreu.tripCollab.repositories.FollowerRepository;
 import io.github.marcelohabreu.tripCollab.repositories.UserRepository;
 import io.github.marcelohabreu.tripCollab.utils.AuthUtil;
 import org.springframework.http.HttpStatus;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.security.Principal;
 import java.util.*;
 
 
@@ -26,11 +25,13 @@ import java.util.*;
 @Validated
 public class UserService {
     private final UserRepository repository;
+    private final FollowerRepository followerRepository;
     private final BCryptPasswordEncoder encoder;
     private final AuthUtil authUtil;
 
-    public UserService(UserRepository repository, BCryptPasswordEncoder encoder, AuthUtil authUtil) {
+    public UserService(UserRepository repository, FollowerRepository followerRepository, BCryptPasswordEncoder encoder, AuthUtil authUtil) {
         this.repository = repository;
+        this.followerRepository = followerRepository;
         this.encoder = encoder;
         this.authUtil = authUtil;
     }
@@ -44,14 +45,16 @@ public class UserService {
         return ResponseEntity.ok(repository.findAll().stream().sorted(Comparator.comparing(User::getUsername)).map(AdminUserResponse::fromModel).toList());
     }
 
-    public ResponseEntity<List<PublicUserResponse>> listPublicUsers() {
-        return ResponseEntity.ok(repository.findAll().stream().sorted(Comparator.comparing(User::getUsername)).map(PublicUserResponse::fromModel).toList());
+    public ResponseEntity<List<SimpleUserResponse>> listPublicUsers(Principal principal) {
+        User authenticatedUser = principal != null ? repository.findById(UUID.fromString(principal.getName())).orElseThrow(UserNotFoundException::new) :
+                null;
+        return ResponseEntity.ok(repository.findAll().stream().sorted(Comparator.comparing(User::getUsername)).map(u -> SimpleUserResponse.fromModel(u, authenticatedUser, followerRepository)).toList());
     }
 
     @Transactional
     public ResponseEntity<Map<String, Object>> updateMyProfile(JwtAuthenticationToken token, UserUpdateRequest dto) throws CustomAccessDeniedException {
         var userId = extractId(token);
-        var user = repository.findById(userId).orElseThrow(UserNotFoundException::new);
+        var user = authUtil.checkUserExists(userId);
 
         if (dto.username() != null && !dto.username().isBlank()) {
             var existingUser = repository.findByUsername(dto.username());
@@ -77,25 +80,25 @@ public class UserService {
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Profile successfully updated");
-        response.put("user", UserResponse.fromModel(user));
+        response.put("user", UserProfileResponse.fromModel(user));
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    public ResponseEntity<UserResponse> getMyProfile(JwtAuthenticationToken token) {
+    public ResponseEntity<UserProfileResponse> getMyProfile(JwtAuthenticationToken token) {
         UUID userId = extractId(token);
-        var user = repository.findById(userId).map(UserResponse::fromModel).orElseThrow(UserNotFoundException::new);
+        var user = repository.findById(userId).map(UserProfileResponse::fromModel).orElseThrow(UserNotFoundException::new);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
-    public ResponseEntity<PublicUserResponse> getPublicUser(UUID id) {
-        var user = repository.findById(id).map(PublicUserResponse::fromModel).orElseThrow(UserNotFoundException::new);
+    public ResponseEntity<OtherUserResponse> getPublicUser(UUID id) {
+        var user = repository.findById(id).map(OtherUserResponse::fromModel).orElseThrow(UserNotFoundException::new);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
     @Transactional
     public ResponseEntity<Void> deleteMyProfile(JwtAuthenticationToken token) throws CustomAccessDeniedException {
         var userId = extractId(token);
-        var user = repository.findById(userId).orElseThrow(UserNotFoundException::new);
+        var user = authUtil.checkUserExists(userId);
         repository.delete(user);
         return ResponseEntity.noContent().build();
     }

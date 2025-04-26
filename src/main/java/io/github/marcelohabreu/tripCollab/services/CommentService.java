@@ -73,7 +73,8 @@ public class CommentService {
 
     public ResponseEntity<PublicCommentsResponse> getCommentsByPosts(UUID postId){
         List<Comment> comments = commentRepository.findCommentsByPostId(postId).stream().sorted(Comparator.comparing(Comment::getCreatedAt)).toList();
-        return ResponseEntity.status(HttpStatus.OK).body(PublicCommentsResponse.fromModel(comments));
+        int countComments = commentRepository.countCommentsByPostId(postId);
+        return ResponseEntity.status(HttpStatus.OK).body(PublicCommentsResponse.fromModel(countComments,comments));
     }
 
 }

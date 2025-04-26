@@ -13,8 +13,9 @@ record PublicCommentResponse(UUID commentId, String content, String author, @Jso
     }
 }
 
+
 public record PublicCommentsResponse(int countComments, List<PublicCommentResponse> comments) {
-    public static PublicCommentsResponse fromModel(List<Comment> c){
-        return new PublicCommentsResponse(c.size(), c.stream().map(PublicCommentResponse::fromModel).toList());
+    public static PublicCommentsResponse fromModel(int count, List<Comment> c){
+        return new PublicCommentsResponse(count, c.stream().map(PublicCommentResponse::fromModel).toList());
     }
 }

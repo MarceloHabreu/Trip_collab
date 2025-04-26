@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PostImage {
+public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "image_id")
