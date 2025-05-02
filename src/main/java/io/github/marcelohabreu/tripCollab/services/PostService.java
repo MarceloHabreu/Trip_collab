@@ -20,7 +20,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -30,15 +29,17 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final SaveRepository saveRepository;
     private final CommentRepository commentRepository;
     private final ImageRepository imageRepository;
     private final CloudinaryService cloudinaryService;
     private final AuthUtil authUtil;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository, LikeRepository likeRepository, CommentRepository commentRepository, ImageRepository imageRepository, CloudinaryService cloudinaryService, AuthUtil authUtil) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, LikeRepository likeRepository, SaveRepository saveRepository, CommentRepository commentRepository, ImageRepository imageRepository, CloudinaryService cloudinaryService, AuthUtil authUtil) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
+        this.saveRepository = saveRepository;
         this.commentRepository = commentRepository;
         this.imageRepository = imageRepository;
         this.cloudinaryService = cloudinaryService;
@@ -191,8 +192,10 @@ public class PostService {
         // Likes and Comments
         var likes = fetchLikesForPost(post, pageable);
         var comments = fetchCommentsForPost(post, pageable);
+        boolean isLiked = likeRepository.existsByPostPostIdAndUserUserId(post.getPostId(), post.getUser().getUserId());
+        boolean isSaved = saveRepository.existsByPostPostIdAndUserUserId(post.getPostId(), post.getUser().getUserId());
 
-        return ResponseEntity.ok(PostResponse.fromModel(post, likes, comments));
+        return ResponseEntity.ok(PostResponse.fromModel(post, likes, comments, isLiked, isSaved));
     }
 
     public ResponseEntity<PostResponse> getPublicPost(UUID id, Pageable pageable) {
@@ -201,16 +204,30 @@ public class PostService {
         // Likes and Comments
         var likes = fetchLikesForPost(post, pageable);
         var comments = fetchCommentsForPost(post, pageable);
+        boolean isLiked = likeRepository.existsByPostPostIdAndUserUserId(post.getPostId(), post.getUser().getUserId());
+        boolean isSaved = saveRepository.existsByPostPostIdAndUserUserId(post.getPostId(), post.getUser().getUserId());
 
-        return ResponseEntity.ok(PostResponse.fromModel(post, likes, comments));
+        return ResponseEntity.ok(PostResponse.fromModel(post, likes, comments, isLiked, isSaved));
     }
 
     public ResponseEntity<List<SimplePostResponse>> getAdminPosts(Pageable pageable) {
         return ResponseEntity.ok(postRepository.findAll(pageable).stream().sorted(Comparator.comparing(Post::getTitle)).map(SimplePostResponse::fromModel).toList());
     }
 
-    public ResponseEntity<List<SimplePostResponse>> getPublicPosts(Pageable pageable) {
-        return ResponseEntity.ok(postRepository.findAll(pageable).stream().sorted(Comparator.comparing(Post::getTitle)).map(SimplePostResponse::fromModel).toList());
+    public ResponseEntity<List<PostResponse>> getPublicPosts(Pageable pageable) {
+        return ResponseEntity.ok(
+                postRepository.findAll(pageable)
+                        .stream()
+                        .sorted(Comparator.comparing(Post::getTitle))
+                        .map(post -> {
+                            var likes = fetchLikesForPost(post, pageable);
+                            var comments = fetchCommentsForPost(post, pageable);
+                            boolean isLiked = likeRepository.existsByPostPostIdAndUserUserId(post.getPostId(), post.getUser().getUserId());
+                            boolean isSaved = saveRepository.existsByPostPostIdAndUserUserId(post.getPostId(), post.getUser().getUserId());
+                            return PostResponse.fromModel(post,likes, comments, isLiked, isSaved);
+                        })
+                        .toList()
+        );
     }
 
 }

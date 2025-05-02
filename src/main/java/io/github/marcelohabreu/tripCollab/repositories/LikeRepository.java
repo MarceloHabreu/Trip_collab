@@ -34,4 +34,5 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
 
     @Query("SELECT l.user FROM Like l WHERE l.post.postId = :postId")
     Page<User> findLikersByPostId(@Param("postId") UUID postId, Pageable pageable);
+
 }
